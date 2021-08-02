@@ -23,7 +23,6 @@ services:
   mosquitto:
     container_name: mosquitto-test-2
     image: eclipse-mosquitto:latest
-    network_mode: "host"
     ports:
       - target: 1883
         published: 1883
