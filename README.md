@@ -21,16 +21,10 @@ LogLevel is set via config to `debug` by default for a high level of visibility 
 This application has a dependency on the [alvarium-sdk-go](https://github.com/project-alvarium/alvarium-sdk-go) module 
 and through that a dependency on the [IOTA Streams C bindings](https://github.com/iotaledger/streams/tree/develop/bindings/c).
 
-At this time, the application requires a specific [version](https://github.com/iotaledger/streams/tree/9d469a09ee18c55f087821cb2ebf5de5715ca4f2/bindings/c) 
-of the IOTA Streams C bindings. The compiled library of the bindings is ~80MB in size and thus is not checked in to Github.
-
-This means you will need to build the C bindings yourself and copy the resulting *.so file into your go module cache where
-the referenced version of the alvarium-sdk-go module is found. For example:
-
-`~/go/pkg/mod/github.com/project-alvarium/alvarium-sdk-go@v0.0.0-20210720173148-76fd57ea3590/internal/iota/include`
-
-The version of the alvarium-sdk-go will may differ in your local environment depending on which version you're referencing. If you
-browse to that directory you should see a `channels.h` file. Just put the *.so file right next to that file in the same location.
+The SDK contains a pre-built artifact of the [C bindings](https://github.com/project-alvarium/alvarium-sdk-go/blob/main/internal/iota/include/libiota_streams_c.so)
+in its source tree that was built on Ubuntu 20.04. Obtaining the `alvarium-sdk-go` via `go get` will allow you to build the 
+applications and run tests. However you will need to copy the shared library into a location your OS is aware of in order 
+to load the library dynamically at runtime. For example, on Ubuntu 20.04 this location is `/usr/lib`.
 
 Having done that, you will now be able to build the application using the `make build` command line.
 
