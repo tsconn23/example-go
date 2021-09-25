@@ -11,6 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  *******************************************************************************/
+
 package handlers
 
 import (
@@ -18,6 +19,7 @@ import (
 	"encoding/json"
 	"github.com/project-alvarium/alvarium-sdk-go/pkg/config"
 	"github.com/project-alvarium/alvarium-sdk-go/pkg/interfaces"
+	"github.com/project-alvarium/example-go/internal/db"
 	"github.com/project-alvarium/example-go/internal/models"
 	logInterface "github.com/project-alvarium/provider-logging/pkg/interfaces"
 	"github.com/project-alvarium/provider-logging/pkg/logging"
@@ -28,15 +30,17 @@ type Mutator struct {
 	cfg         config.SdkInfo
 	chSubscribe chan []byte
 	chPublish   chan []byte
+	db          db.MongoProvider
 	logger      logInterface.Logger
 	sdk         interfaces.Sdk
 }
 
-func NewMutator(sdk interfaces.Sdk, chSub chan []byte, chPub chan []byte, cfg config.SdkInfo, logger logInterface.Logger) Mutator {
+func NewMutator(sdk interfaces.Sdk, chSub chan []byte, chPub chan []byte, cfg config.SdkInfo, db db.MongoProvider, logger logInterface.Logger) Mutator {
 	return Mutator{
 		cfg:         cfg,
 		chSubscribe: chSub,
 		chPublish:   chPub,
+		db:          db,
 		logger:      logger,
 		sdk:         sdk,
 	}
@@ -55,8 +59,13 @@ func (m *Mutator) BootstrapHandler(ctx context.Context, wg *sync.WaitGroup) bool
 					m.logger.Error(err.Error())
 					continue
 				}
-				b, _ := json.Marshal(data)
+				err = m.db.Save(ctx, data)
+				if err != nil {
+					m.logger.Error(err.Error())
+					continue
+				}
 
+				b, _ := json.Marshal(data)
 				m.sdk.Mutate(ctx, msg, b)
 				m.chPublish <- b
 			} else { //channel has been closed. End goroutine.

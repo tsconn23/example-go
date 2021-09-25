@@ -28,9 +28,10 @@ const alphanumericCharset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY
 var seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 type SampleData struct {
-	Description string `json:"description,omitempty"`
-	Seed        string `json:"seed,omitempty"`
-	Signature   string `json:"signature,omitempty"`
+	Description string    `json:"description,omitempty"`
+	Seed        string    `json:"seed,omitempty"`
+	Signature   string    `json:"signature,omitempty"`
+	Timestamp   time.Time `json:"timestamp,omitempty"`
 }
 
 func NewSampleData(cfg config.KeyInfo) (SampleData, error) {
@@ -42,6 +43,7 @@ func NewSampleData(cfg config.KeyInfo) (SampleData, error) {
 	x := SampleData{
 		Description: factoryRandomFixedLengthString(128, alphanumericCharset),
 		Seed:        factoryRandomFixedLengthString(64, alphanumericCharset),
+		Timestamp:   time.Now(),
 	}
 
 	keyDecoded := make([]byte, hex.DecodedLen(len(key)))
@@ -57,4 +59,22 @@ func factoryRandomFixedLengthString(length int, charset string) string {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
 	return string(b)
+}
+
+type MongoRecord struct {
+	Description string    `json:"description,omitempty"`
+	Seed        string    `json:"seed,omitempty"`
+	Signature   string    `json:"signature,omitempty"`
+	Timestamp   time.Time `json:"timestamp,omitempty"`
+	Score       int       `json:"score"`
+	Confidence  float32   `json:"confidence"`
+}
+
+func MongoFromSampleData(data SampleData) MongoRecord {
+	return MongoRecord{
+		Description: data.Description,
+		Seed:        data.Seed,
+		Signature:   data.Signature,
+		Timestamp:   data.Timestamp,
+	}
 }

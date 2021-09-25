@@ -11,6 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  *******************************************************************************/
+
 package config
 
 import (
@@ -19,7 +20,17 @@ import (
 	logging "github.com/project-alvarium/provider-logging/pkg/config"
 )
 
+type MongoConfig struct {
+	Host       string `json:"host,omitempty"`
+	Port       int    `json:"port,omitempty"`
+	Username   string `json:"username,omitempty"`
+	Password   string `json:"password,omitempty"`
+	Collection string `json:"collection,omitempty"`
+	DbName     string `json:"dbName,omitempty"`
+}
+
 type ApplicationConfig struct {
+	Mongo   MongoConfig         `json:"mongo,omitempty"`
 	Sdk     config.SdkInfo      `json:"sdk,omitempty"`
 	Logging logging.LoggingInfo `json:"logging,omitempty"`
 }

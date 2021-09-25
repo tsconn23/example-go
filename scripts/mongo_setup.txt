@@ -1,0 +1,13 @@
+/* Create Database */
+use AlvariumDB
+
+/* Create application user */
+ db.runCommand( {
+       createUser: "dbAdmin",
+       pwd: "password",
+       roles: ["readWrite"],
+       writeConcern: { w: "majority" , wtimeout: 5000 }
+} )
+
+/* Find a record by its ObjectId */
+db.sampleData.find({_id:ObjectId("614e6c611616aa37dead69e8")}

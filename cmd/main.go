@@ -21,6 +21,7 @@ import (
 	"github.com/project-alvarium/alvarium-sdk-go/pkg/interfaces"
 	"github.com/project-alvarium/example-go/internal/bootstrap"
 	"github.com/project-alvarium/example-go/internal/config"
+	"github.com/project-alvarium/example-go/internal/db"
 	"github.com/project-alvarium/example-go/internal/handlers"
 	logConfig "github.com/project-alvarium/provider-logging/pkg/config"
 	logFactory "github.com/project-alvarium/provider-logging/pkg/factories"
@@ -69,11 +70,18 @@ func main() {
 	}
 	sdk := pkg.NewSdk(annotators, cfg.Sdk, logger)
 
+	// Connect to database
+	database, err := db.NewMongoProvider(cfg.Mongo, logger)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
 	// handlers for example functionality
 	chCreate := make(chan []byte)
 	chMutate := make(chan []byte)
-	create := handlers.NewCreateLoop(sdk, chCreate, cfg.Sdk, logger)
-	mutate := handlers.NewMutator(sdk, chCreate, chMutate, cfg.Sdk, logger)
+	create := handlers.NewCreateLoop(sdk, chCreate, cfg.Sdk, database, logger)
+	mutate := handlers.NewMutator(sdk, chCreate, chMutate, cfg.Sdk, database, logger)
 	transit := handlers.NewTransit(sdk, chMutate, cfg.Sdk, logger)
 	ctx, cancel := context.WithCancel(context.Background())
 	bootstrap.Run(
@@ -82,6 +90,7 @@ func main() {
 		cfg,
 		[]bootstrap.BootstrapHandler{
 			sdk.BootstrapHandler,
+			database.BootstrapHandler,
 			create.BootstrapHandler,
 			mutate.BootstrapHandler,
 			transit.BootstrapHandler,

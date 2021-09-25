@@ -11,6 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  *******************************************************************************/
+
 package handlers
 
 import (
@@ -18,6 +19,7 @@ import (
 	"encoding/json"
 	"github.com/project-alvarium/alvarium-sdk-go/pkg/config"
 	"github.com/project-alvarium/alvarium-sdk-go/pkg/interfaces"
+	"github.com/project-alvarium/example-go/internal/db"
 	"github.com/project-alvarium/example-go/internal/models"
 	logInterface "github.com/project-alvarium/provider-logging/pkg/interfaces"
 	"github.com/project-alvarium/provider-logging/pkg/logging"
@@ -28,14 +30,16 @@ import (
 type CreateLoop struct {
 	cfg       config.SdkInfo
 	chPublish chan []byte
+	db        db.MongoProvider
 	logger    logInterface.Logger
 	sdk       interfaces.Sdk
 }
 
-func NewCreateLoop(sdk interfaces.Sdk, ch chan []byte, cfg config.SdkInfo, logger logInterface.Logger) CreateLoop {
+func NewCreateLoop(sdk interfaces.Sdk, ch chan []byte, cfg config.SdkInfo, db db.MongoProvider, logger logInterface.Logger) CreateLoop {
 	return CreateLoop{
 		cfg:       cfg,
 		chPublish: ch,
+		db:        db,
 		logger:    logger,
 		sdk:       sdk,
 	}
@@ -53,8 +57,13 @@ func (c *CreateLoop) BootstrapHandler(ctx context.Context, wg *sync.WaitGroup) b
 				c.logger.Error(err.Error())
 				continue
 			}
-			b, _ := json.Marshal(data)
+			err = c.db.Save(ctx, data)
+			if err != nil {
+				c.logger.Error(err.Error())
+				continue
+			}
 
+			b, _ := json.Marshal(data)
 			c.sdk.Create(context.Background(), b)
 			c.chPublish <- b
 			time.Sleep(1 * time.Second)
