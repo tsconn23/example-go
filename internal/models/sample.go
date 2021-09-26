@@ -11,12 +11,14 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  *******************************************************************************/
+
 package models
 
 import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"fmt"
+	"github.com/oklog/ulid/v2"
 	"github.com/project-alvarium/alvarium-sdk-go/pkg/config"
 	"io/ioutil"
 	"math/rand"
@@ -28,10 +30,11 @@ const alphanumericCharset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY
 var seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 type SampleData struct {
-	Description string `json:"description,omitempty"`
-	Seed        string `json:"seed,omitempty"`
-	Signature   string `json:"signature,omitempty"`
-	Timestamp   string `json:"timestamp,omitempty"`
+	Description string    `json:"description,omitempty"`
+	Id          ulid.ULID `json:"id,omitempty"`
+	Seed        string    `json:"seed,omitempty"`
+	Signature   string    `json:"signature,omitempty"`
+	Timestamp   string    `json:"timestamp,omitempty"`
 }
 
 func NewSampleData(cfg config.KeyInfo) (SampleData, error) {
@@ -42,6 +45,7 @@ func NewSampleData(cfg config.KeyInfo) (SampleData, error) {
 
 	x := SampleData{
 		Description: factoryRandomFixedLengthString(128, alphanumericCharset),
+		Id:          newULID(),
 		Seed:        factoryRandomFixedLengthString(64, alphanumericCharset),
 		Timestamp:   time.Now().UTC().Format(time.RFC3339Nano),
 	}
@@ -61,8 +65,19 @@ func factoryRandomFixedLengthString(length int, charset string) string {
 	return string(b)
 }
 
+func newULID() ulid.ULID {
+	seed := time.Now().UnixNano()
+	source := rand.NewSource(seed)
+	entropy := rand.New(source)
+
+	id, _ := ulid.New(ulid.Timestamp(time.Now()), entropy)
+
+	return id
+}
+
 type MongoRecord struct {
 	Description string  `json:"description,omitempty"`
+	Id          string  `json:"id,omitempty"`
 	Seed        string  `json:"seed,omitempty"`
 	Signature   string  `json:"signature,omitempty"`
 	Timestamp   string  `json:"timestamp,omitempty"`
@@ -72,6 +87,7 @@ type MongoRecord struct {
 func MongoFromSampleData(data SampleData) MongoRecord {
 	return MongoRecord{
 		Description: data.Description,
+		Id:          data.Id.String(),
 		Seed:        data.Seed,
 		Signature:   data.Signature,
 		Timestamp:   data.Timestamp,
