@@ -76,20 +76,23 @@ func newULID() ulid.ULID {
 }
 
 type MongoRecord struct {
-	Description string  `json:"description,omitempty"`
-	Id          string  `json:"id,omitempty"`
-	Seed        string  `json:"seed,omitempty"`
-	Signature   string  `json:"signature,omitempty"`
-	Timestamp   string  `json:"timestamp,omitempty"`
-	Confidence  float64 `json:"confidence"`
+	Description  string    `json:"description,omitempty"`
+	Id           string    `json:"id,omitempty"`
+	Seed         string    `json:"seed,omitempty"`
+	Signature    string    `json:"signature,omitempty"`
+	Timestamp    string    `json:"timestamp,omitempty"`
+	TimestampISO time.Time `json:"timestampiso, omitempty"`
+	Confidence   float64   `json:"confidence"`
 }
 
 func MongoFromSampleData(data SampleData) MongoRecord {
+	parsed, _ := time.Parse(time.RFC3339Nano, data.Timestamp)
 	return MongoRecord{
-		Description: data.Description,
-		Id:          data.Id.String(),
-		Seed:        data.Seed,
-		Signature:   data.Signature,
-		Timestamp:   data.Timestamp,
+		Description:  data.Description,
+		Id:           data.Id.String(),
+		Seed:         data.Seed,
+		Signature:    data.Signature,
+		Timestamp:    data.Timestamp,
+		TimestampISO: parsed,
 	}
 }
