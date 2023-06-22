@@ -15,19 +15,19 @@
       }
     },
     "stream": {
-      "type": "iota",
+      "type": "mqtt",
       "config": {
+        "clientId": "alvarium-test",
+        "qos": 0,
+        "user": "mosquitto",
+        "password": "",
         "provider": {
-          "host": "100.80.245.205",
-          "protocol": "http",
-          "port": 8080
+          "host": "localhost",
+          "protocol": "tcp",
+          "port": 1883
         },
-        "tangle": {
-          "host": "100.80.245.118",
-          "protocol": "http",
-          "port": 8080
-        },
-        "encoding": "utf-8"
+        "cleanness": false,
+        "topics": ["alvarium-test-topic"]
       }
     }
   },
